@@ -1,0 +1,25 @@
+1. Create a user provide , for eg entity in user like this
+        database_users:
+            entity:
+                # the class of the entity that represents users
+                class: 'App\Entity\User'
+                # the property to query by - e.g. email, username, etc
+                property: 'email'
+
+ 2. For API, create a firewall
+         api:
+             pattern: ^/api
+             stateless: true
+             custom_authenticators:
+                 - App\Service\Authentication\ApiKeyAuthenticator
+             provider: database_users
+3. Create ApiKeyAuthenticator class
+4. Assign Roles to Urls
+    access_control:
+        # - { path: ^/admin, roles: ROLE_ADMIN }
+        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: '^/api/v1/personal_data', roles: ROLE_USER }
+4. If you call headers without auth-token value, only url's under /api which do not have role will be called
+if you are trying to call url with a role and not set auth-token, they will throw up 401.
+5. Note that just setting firewall doesn't stop URL from being accessed, always set roles to restrict control .
+No authentication will be done if header key is not set ( Risky!!)
