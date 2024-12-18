@@ -28,6 +28,57 @@ class ConnectionRepositoryTest extends KernelTestCase
         $this->repository = $this->entityManager->getRepository(Connection::class);
     }
 
+
+    public function testCreateConnectionThatWorks()
+    {
+
+        // here I create fixtures
+        $this->createUsers();
+
+        // everything after this works
+
+        $userA = $this->entityManager->getRepository(User::class)->find($this->mainUser->getId());
+        $userB = $this->entityManager->getRepository(User::class)->find($this->users[0]->getId());
+
+        // true
+        $a = $this->entityManager->contains($userA);
+        // true
+        $b = $this->entityManager->contains($userB);
+
+
+        $this->repository->createConnection($userA, $userB);
+
+        self::assertNotNull($this->repository->findOneBy(['user' => $userA, 'connectedToUser' => $userB]));
+        self::assertNotNull($this->repository->findOneBy(['connectedToUser' => $userB, 'user' => $userA]));
+
+    }
+
+    public function testCreateConnectionThatDoesNotWorks()
+    {
+
+        // here I create fixtures
+        $this->createUsers();
+        /*
+         * This does not work
+         */
+        // I don't need to find them again
+        // But I do for testing
+        $userA = UserFactory::find($this->mainUser->getId());
+        $userB = UserFactory::find($this->users[0]->getId());
+
+        // false
+        $x = $this->entityManager->contains($userA->_real());
+        // false
+        $y = $this->entityManager->contains($userB->_real());
+
+        $this->repository->createConnection($userA->_real(), $userB->_real());
+
+        self::assertNotNull($this->repository->findOneBy(['user' => $userA->_real(), 'connectedToUser' => $userB->_real()]));
+        self::assertNotNull($this->repository->findOneBy(['connectedToUser' => $userB->_real(), 'user' => $userA->_real()]));
+
+    }
+
+
     public function testDeleteConnection()
     {
         $this->createUsers();
@@ -38,49 +89,6 @@ class ConnectionRepositoryTest extends KernelTestCase
             'user' => $this->mainUser->_real(), 'connectedToUser' => $this->users[0]->_real()]));
         self::assertNull($this->repository->findOneBy([
             'connectedToUser' => $this->users[0]->_real(), 'user' => $this->mainUser->_real()]));
-
-    }
-
-    public function testCreateConnection()
-    {
-
-        // here I create fixtures
-        $this->createUsers();
-/*
- * This does not work
- *
-        // I don't need to find them again
-        // But I do for testing
-        $userA = UserFactory::find($this->mainUser->getId());
-        $userB = UserFactory::find($this->users[0]->getId());
-
-        // false
-        $x = $this->entityManager->contains($userA->_real());
-        // false
-        $y=  $this->entityManager->contains($userB->_real());
-
-        $this->repository->createConnection($userA, $userB);
-
-        self::assertNotNull($this->repository->findOneBy(['user' => $this->mainUser->_real(), 'connectedToUser' => $this->users[0]->_real()]));
-        self::assertNotNull($this->repository->findOneBy(['connectedToUser' => $this->users[0]->_real(), 'user' => $this->mainUser->_real()]));
-*/
-
-        // everything after this works
-
-        $userA = $this->entityManager->getRepository(User::class)->find($this->mainUser->getId());
-        $userB = $this->entityManager->getRepository(User::class)->find($this->users[0]->getId());
-
-        // true
-        $a = $this->entityManager->contains($userA);
-        // true
-        $b=  $this->entityManager->contains($userB);
-
-
-
-        $this->repository->createConnection($userA, $userB);
-
-        self::assertNotNull($this->repository->findOneBy(['user' => $this->mainUser->_real(), 'connectedToUser' => $this->users[0]->_real()]));
-        self::assertNotNull($this->repository->findOneBy(['connectedToUser' => $this->users[0]->_real(), 'user' => $this->mainUser->_real()]));
 
     }
 }
